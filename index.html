@@ -5,18 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>상식 무작위 OX 게임 🌸</title>
 
-  <!-- 1) TailwindCSS -->
+  <!-- Tailwind + 한글 폰트 -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
-  <!-- 2) 한글 폰트 -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <!-- 3) Firebase SDK 초기화 (module 방식) -->
+  <!-- Firebase SDK 초기화 -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { initializeApp }    from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
     import {
       getFirestore,
       collection,
@@ -28,21 +23,22 @@
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
 
-    // 🔧 여기에 본인의 Firebase 설정을 그대로 붙여넣으세요
+    // ⚙️ 여기에 본인 프로젝트 설정을 넣으세요
     const firebaseConfig = {
       apiKey: "AIzaSyCW8O5dWlJUDfBFMkTn_EH7U1qShxFNtVk",
       authDomain: "ox-quiz-game.firebaseapp.com",
       projectId: "ox-quiz-game",
       storageBucket: "ox-quiz-game.firebasestorage.app",
       messagingSenderId: "484621367338",
-      appId: "1:484621367338:web:82dd40e221c0a25359ab53"
+      appId: "1:484621367338:web:82dd40e221c0a25359ab53",
+      measurementId: "G-KEQXWKL4F4"
     };
 
-    // Firebase 초기화
+    // 초기화
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // 전역으로 노출 (hall-of-fame.js, script.js 에서 사용)
+    // hall-of-fame.js, script.js 에서 사용하도록 전역 노출
     window.firebaseApp       = app;
     window.firebaseDb        = db;
     window.firebaseFirestore = {
@@ -58,125 +54,30 @@
     console.log("✅ Firebase + Firestore 초기화 완료");
   </script>
 
-  <!-- 4) 커스텀 CSS -->
   <style>
     * { font-family: "Noto Sans KR", sans-serif; }
-    .pastel-gradient {
-      background:
-        linear-gradient(
-          135deg,
-          #fef7ff 0%, #fff0f6 25%, #f0f9ff 50%, #f7fee7 75%, #fefce8 100%
-        );
-    }
-    .cute-button {
-      background: linear-gradient(145deg,#fef7ff,#f8fafc);
-      box-shadow: 0 8px 16px rgba(219,112,147,0.2);
-    }
-    .cute-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(219,112,147,0.3);
-    }
-    .category-tab {
-      background: linear-gradient(145deg,#fff,#f8fafc);
-      border: 2px solid #e2e8f0;
-    }
-    .category-tab.active {
-      background: linear-gradient(145deg,#fdf2f8,#fce7f3);
-      border-color: #f472b6;
-      color: #be185d;
-    }
-    .progress-bar {
-      background: linear-gradient(90deg,#f472b6,#ec4899,#db2777);
-      border-radius: 10px;
-      transition: width .3s ease;
-    }
-    .loading-spinner {
-      border:3px solid #f3f3f3;
-      border-top:3px solid #f472b6;
-      border-radius:50%;
-      width:20px; height:20px;
-      animation:spin 1s linear infinite;
-    }
-    @keyframes spin {
-      to { transform:rotate(360deg) }
-    }
+    .pastel-gradient { background: linear-gradient(135deg,#fef7ff,#fff0f6,#f0f9ff,#f7fee7,#fefce8); }
+    .cute-button { background:linear-gradient(145deg,#fef7ff,#f8fafc); box-shadow:0 8px 16px rgba(219,112,147,0.2); }
+    .cute-button:hover { transform:translateY(-2px); box-shadow:0 12px 24px rgba(219,112,147,0.3); }
+    .category-tab { background:linear-gradient(145deg,#fff,#f8fafc); border:2px solid #e2e8f0; }
+    .category-tab.active { background:linear-gradient(145deg,#fdf2f8,#fce7f3); border-color:#f472b6; color:#be185d; }
+    .progress-bar { background:linear-gradient(90deg,#f472b6,#ec4899,#db2777); border-radius:10px; transition:width .3s ease; }
+    .loading-spinner { border:3px solid #f3f3f3; border-top:3px solid #f472b6; border-radius:50%; width:20px; height:20px; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg) } }
     .success-animation { animation:bounceIn .8s ease-out; }
     .failure-animation { animation:shakeX .6s ease-out; }
-    @keyframes bounceIn {
-      0%{transform:scale(.3);opacity:0}
-      50%{transform:scale(1.05)}
-      70%{transform:scale(.9)}
-      100%{transform:scale(1);opacity:1}
-    }
-    @keyframes shakeX {
-      0%,100%{transform:translateX(0)}
-      10%,30%,50%,70%,90%{transform:translateX(-10px)}
-      20%,40%,60%,80%{transform:translateX(10px)}
-    }
+    @keyframes bounceIn { 0%{transform:scale(.3);opacity:0} 50%{transform:scale(1.05)} 70%{transform:scale(.9)} 100%{transform:scale(1);opacity:1} }
+    @keyframes shakeX   { 0%,100%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-10px)} 20%,40%,60%,80%{transform:translateX(10px)} }
   </style>
 </head>
 
 <body class="pastel-gradient min-h-screen">
+  <!-- 여기는 기존 그대로 두세요 -->
   <div class="container mx-auto px-4 py-8">
-    <!-- 헤더 -->
-    <header class="text-center mb-12">
-      <h1 class="text-4xl md:text-6xl font-bold text-pink-600 mb-4">
-        🌸 상식 무작위 OX 게임 🌸
-      </h1>
-      <p class="text-xl text-pink-400 font-medium">
-        귀엽고 재미있는 상식 퀴즈로 놀아보세요!
-      </p>
-    </header>
-
-    <div id="main-content">
-      <!-- HOME 화면 -->
-      <div id="home-screen" class="text-center">
-        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 mb-8 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-          <div class="text-6xl mb-6">🎀</div>
-          <h2 class="text-3xl font-bold text-gray-800 mb-4">환영합니다!</h2>
-          <p class="text-gray-600 mb-8 text-lg">
-            10문제를 모두 맞히면 모든 사용자가 보는 명예의 전당에 이름을 올릴 수 있어요!
-          </p>
-
-          <div class="mb-8">
-            <h3 class="text-xl font-semibold text-gray-700 mb-4">퀴즈 유형 선택</h3>
-            <div id="category-tabs" class="flex flex-wrap gap-3 justify-center">
-              <button class="category-tab px-4 py-2 rounded-full" data-category="전체">🌟 전체</button>
-              <button class="category-tab px-4 py-2 rounded-full" data-category="일반상식">🧠 일반상식</button>
-              <button class="category-tab px-4 py-2 rounded-full" data-category="IT">💻 IT</button>
-              <button class="category-tab px-4 py-2 rounded-full" data-category="정치">🏛️ 정치</button>
-              <button class="category-tab px-4 py-2 rounded-full" data-category="금융">💰 금융</button>
-              <button class="category-tab px-4 py-2 rounded-full" data-category="경제">📈 경제</button>
-              <button class="category-tab px-4 py-2 rounded-full" data-category="엔터테인먼트">🎭 엔터</button>
-              <button class="category-tab px-4 py-2 rounded-full" data-category="문화">🎨 문화</button>
-            </div>
-          </div>
-
-          <button id="start-quiz-btn" class="cute-button text-2xl font-bold text-pink-600 px-12 py-4 rounded-full hover:scale-105 transition-all">
-            🎯 바로 시작하기
-          </button>
-        </div>
-
-        <!-- 명예의 전당 미리보기 -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-          <h3 class="text-2xl font-bold text-pink-600 mb-4">🏆 공개 명예의 전당</h3>
-          <div id="hall-of-fame-preview" class="text-gray-600">
-            <div class="flex items-center justify-center gap-2">
-              <div class="loading-spinner"></div>
-              <span>로딩 중…</span>
-            </div>
-          </div>
-          <button id="view-hall-btn" class="mt-4 text-pink-500 hover:text-pink-600">
-            전체 보기 →
-          </button>
-        </div>
-      </div>
-
-      <!-- QUIZ, SUCCESS, FAILURE, HALL 화면들은 script.js 에서 제어됩니다 -->
-    </div>
+    <!-- … 홈/퀴즈/명예의전당 등 UI … -->
   </div>
 
-  <!-- 5) JS 모듈 -->
+  <!-- hall-of-fame.js, script.js -->
   <script src="hall-of-fame.js"></script>
   <script src="script.js"></script>
 </body>
