@@ -1,19 +1,20 @@
-// 공개 명예의 전당 관리 모듈 (Firestore 기반, 오늘 기록만 조회)
+// 공개 명예의 전당 관리 모듈 (Firebase Firestore 기반, 오늘 기록만 조회)
 const HallOfFame = {
   COLLECTION_NAME: 'hall-of-fame',
 
-  // Firebase 초기화 대기 (최대 5초)
+  // Firebase 초기화 대기
   async waitForFirebase() {
     let attempts = 0;
-    while (attempts < 50) {
+    const maxAttempts = 50;
+    while (attempts < maxAttempts) {
       if (window.firebaseDb && window.firebaseFirestore) return;
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(res => setTimeout(res, 100));
       attempts++;
     }
     throw new Error('Firebase 초기화 대기 시간 초과');
   },
 
-  // 모듈 초기화
+  // 초기화 (한 번만 호출)
   async initialize() {
     try {
       await this.waitForFirebase();
@@ -23,15 +24,17 @@ const HallOfFame = {
     }
   },
 
-  // 우승자 추가
+  // 승자 추가 (점수 하드코딩: 10)
   async addWinner(name) {
     await this.waitForFirebase();
     const { collection, addDoc, serverTimestamp } = window.firebaseFirestore;
+
     const data = {
       name: name.trim(),
       score: 10,
       timestamp: serverTimestamp()
     };
+
     const docRef = await addDoc(
       collection(window.firebaseDb, this.COLLECTION_NAME),
       data
@@ -40,14 +43,14 @@ const HallOfFame = {
     return { id: docRef.id, ...data };
   },
 
-  // 오늘(00:00~24:00) 기록만 조회
+  // 오늘(00:00~24:00) 승자만 조회
   async getWinners() {
     try {
       await this.waitForFirebase();
       const { collection, getDocs, query, where, orderBy } = window.firebaseFirestore;
       const db = window.firebaseDb;
 
-      const start = new Date(); 
+      const start = new Date();
       start.setHours(0, 0, 0, 0);
       const end = new Date(start);
       end.setDate(end.getDate() + 1);
@@ -60,27 +63,23 @@ const HallOfFame = {
       );
 
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => {
-        const d = doc.data();
-        return {
-          id: doc.id,
-          name: d.name,
-          score: d.score,
-          timestamp: d.timestamp.toDate().toISOString()
-        };
-      });
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp.toDate().toISOString()
+      }));
     } catch (err) {
-      console.error('❌ 공개 명예의 전당 조회 실패, 로컬 백업 사용:', err);
-      // 에러 나면 빈 배열 리턴
+      console.error('getWinners 에러:', err);
       return [];
     }
   },
 
-  // 오늘 중복 이름 검사
+  // 오늘 승자 중 이름 중복 체크
   async isDuplicateName(name) {
     const winners = await this.getWinners();
-    const lower = name.trim().toLowerCase();
-    return winners.some(w => w.name.toLowerCase() === lower);
+    return winners.some(w =>
+      w.name.toLowerCase() === name.trim().toLowerCase()
+    );
   },
 
   // 연결 상태 확인
@@ -89,8 +88,14 @@ const HallOfFame = {
       await this.waitForFirebase();
       return { status: 'connected', message: 'Firestore 연결됨' };
     } catch (err) {
-      return { status: 'error',   message: err.message };
+      return { status: 'error', message: err.message };
     }
+  },
+
+  // 오늘 명예의 전당 통계 조회 (승자 수)
+  async getStats() {
+    const winners = await this.getWinners();
+    return { count: winners.length };
   }
 };
 
