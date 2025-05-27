@@ -1,300 +1,166 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>상식 무작위 OX 게임 🌸</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>상식 무작위 OX 게임 🌸</title>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+  <!-- 1) TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        // Firebase 설정 (환경변수 또는 실제 값으로 교체)
-        const firebaseConfig = {
-            apiKey: "AIzaSyBJ9K3L2M4N5O6P7Q8R9S0T1U2V3W4X5Y6Z", // <-- 사용자 API Key로 교체 필요
-            authDomain: "ox-quiz-game-demo.firebaseapp.com", // <-- 사용자 프로젝트 도메인으로 교체 필요
-            projectId: "ox-quiz-game-demo", // <-- 사용자 프로젝트 ID로 교체 필요
-            storageBucket: "ox-quiz-game-demo.appspot.com", // <-- 사용자 Storage Bucket으로 교체 필요
-            messagingSenderId: "123456789012", // <-- 사용자 Sender ID로 교체 필요
-            appId: "1:123456789012:web:abcdef123456789012345678" // <-- 사용자 App ID로 교체 필요
-        };
+  <!-- 2) 한글 폰트 -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
 
-        try {
-            // Firebase 초기화
-            const app = initializeApp(firebaseConfig);
-            const db = getFirestore(app);
+  <!-- 3) Firebase SDK 초기화 (반드시 <script type="module"> 로!) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-analytics.js";
+    // TODO: 필요하면 Firestore나 Auth 같은 다른 SDK도 여기서 import
 
-            // 전역에서 사용할 수 있도록 설정
-            window.firebaseApp = app;
-            window.firebaseDb = db;
+    // Firebase 설정 — Firebase 콘솔에서 복사한 본인 설정으로 교체하세요
+    const firebaseConfig = {
+      apiKey: "AIzaSyCW8O5dWlJUDfBFMkTn_EH7U1qShxFNtVk",
+      authDomain: "ox-quiz-game.firebaseapp.com",
+      projectId: "ox-quiz-game",
+      storageBucket: "ox-quiz-game.firebasestorage.app",
+      messagingSenderId: "484621367338",
+      appId: "1:484621367338:web:82dd40e221c0a25359ab53",
+      measurementId: "G-KEQXWKL4F4"
+    };
 
-            // Firebase 모듈들을 전역에서 사용할 수 있도록 설정
-            import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-            window.firebaseFirestore = {
-                collection,
-                addDoc,
-                getDocs,
-                query,
-                orderBy,
-                limit,
-                serverTimestamp
-            };
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
 
-            console.log('Firebase 초기화 성공');
-        } catch (error) {
-            console.warn('Firebase 초기화 실패, 로컬 모드로 실행:', error);
-            window.firebaseInitError = error;
-        }
-    </script>
+    // 전역에 노출 (hall-of-fame.js, script.js 에서 참조)
+    window.firebaseApp = app;
+    window.firebaseDb = null;               // Firestore 쓰실 경우 getFirestore() 결과로 바꿔주세요
+    window.firebaseFirestore = {};          // Firestore 메소드들도 여기에 담아주세요
+    console.log("✅ Firebase 초기화 완료");
+  </script>
 
-    <style>
-        * {
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-
-        .cute-button {
-            background: linear-gradient(145deg, #fef7ff, #f8fafc);
-            box-shadow: 0 8px 16px rgba(219, 112, 147, 0.2);
-        }
-
-        .cute-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(219, 112, 147, 0.3);
-        }
-
-        .pastel-gradient {
-            background: linear-gradient(135deg, #fef7ff 0%, #fff0f6 25%, #f0f9ff 50%, #f7fee7 75%, #fefce8 100%);
-        }
-
-        .success-animation {
-            animation: bounceIn 0.8s ease-out;
-        }
-
-        .failure-animation {
-            animation: shakeX 0.6s ease-out;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes shakeX {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-            20%, 40%, 60%, 80% { transform: translateX(10px); }
-        }
-
-        .category-tab {
-            background: linear-gradient(145deg, #ffffff, #f8fafc);
-            border: 2px solid #e2e8f0;
-        }
-
-        .category-tab.active {
-            background: linear-gradient(145deg, #fdf2f8, #fce7f3);
-            border-color: #f472b6;
-            color: #be185d;
-        }
-
-        .progress-bar {
-            background: linear-gradient(90deg, #f472b6, #ec4899, #db2777);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #f472b6;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <!-- 4) 커스텀 CSS -->
+  <style>
+    * { font-family: "Noto Sans KR", sans-serif; }
+    .pastel-gradient {
+      background:
+        linear-gradient(
+          135deg,
+          #fef7ff 0%, #fff0f6 25%, #f0f9ff 50%, #f7fee7 75%, #fefce8 100%
+        );
+    }
+    .cute-button {
+      background: linear-gradient(145deg,#fef7ff,#f8fafc);
+      box-shadow: 0 8px 16px rgba(219,112,147,0.2);
+    }
+    .cute-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(219,112,147,0.3);
+    }
+    .category-tab {
+      background: linear-gradient(145deg,#fff,#f8fafc);
+      border: 2px solid #e2e8f0;
+    }
+    .category-tab.active {
+      background: linear-gradient(145deg,#fdf2f8,#fce7f3);
+      border-color: #f472b6;
+      color: #be185d;
+    }
+    .progress-bar {
+      background: linear-gradient(90deg,#f472b6,#ec4899,#db2777);
+      border-radius: 10px;
+      transition: width .3s ease;
+    }
+    .loading-spinner {
+      border:3px solid #f3f3f3;
+      border-top:3px solid #f472b6;
+      border-radius:50%;
+      width:20px; height:20px;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg) } }
+    .success-animation { animation:bounceIn .8s ease-out; }
+    .failure-animation { animation:shakeX .6s ease-out; }
+    @keyframes bounceIn {
+      0%{transform:scale(.3);opacity:0}
+      50%{transform:scale(1.05)}
+      70%{transform:scale(.9)}
+      100%{transform:scale(1);opacity:1}
+    }
+    @keyframes shakeX {
+      0%,100%{transform:translateX(0)}
+      10%,30%,50%,70%,90%{transform:translateX(-10px)}
+      20%,40%,60%,80%{transform:translateX(10px)}
+    }
+  </style>
 </head>
+
 <body class="pastel-gradient min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <!-- 헤더 -->
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-6xl font-bold text-pink-600 mb-4">
-                🌸 상식 무작위 OX 게임 🌸
-            </h1>
-            <p class="text-xl text-pink-400 font-medium">귀엽고 재미있는 상식 퀴즈로 놀아보세요!</p>
-        </header>
+  <div class="container mx-auto px-4 py-8">
+    <!-- 헤더 -->
+    <header class="text-center mb-12">
+      <h1 class="text-4xl md:text-6xl font-bold text-pink-600 mb-4">
+        🌸 상식 무작위 OX 게임 🌸
+      </h1>
+      <p class="text-xl text-pink-400 font-medium">
+        귀엽고 재미있는 상식 퀴즈로 놀아보세요!
+      </p>
+    </header>
 
-        <!-- 메인 컨텐츠 -->
-        <div id="main-content">
-            <!-- 홈 화면 -->
-            <div id="home-screen" class="text-center">
-                <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 mb-8 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-                    <div class="text-6xl mb-6">🎀</div>
-                    <h2 class="text-3xl font-bold text-gray-800 mb-4">환영합니다!</h2>
-                    <p class="text-gray-600 mb-8 text-lg">10문제를 모두 맞히면 모든 사용자가 보는 명예의 전당에 이름을 올릴 수 있어요!</p>
-
-                    <!-- 카테고리 선택 -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">퀴즈 유형 선택</h3>
-                        <div class="flex flex-wrap gap-3 justify-center" id="category-tabs">
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="전체">
-                                🌟 전체
-                            </button>
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="일반상식">
-                                🧠 일반상식
-                            </button>
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="IT">
-                                💻 IT
-                            </button>
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="정치">
-                                🏛️ 정치
-                            </button>
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="금융">
-                                💰 금융
-                            </button>
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="경제">
-                                📈 경제
-                            </button>
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="엔터테인먼트">
-                                🎭 엔터
-                            </button>
-                            <button class="category-tab px-4 py-2 rounded-full font-medium transition-all duration-300" data-category="문화">
-                                🎨 문화
-                            </button>
-                        </div>
-                    </div>
-
-                    <button id="start-quiz-btn" class="cute-button text-2xl font-bold text-pink-600 px-12 py-4 rounded-full transition-all duration-300 hover:scale-105">
-                        🎯 바로 시작하기
-                    </button>
-                </div>
-
-                <!-- 명예의 전당 미리보기 -->
-                <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-                    <h3 class="text-2xl font-bold text-pink-600 mb-4">🏆 공개 명예의 전당</h3>
-                    <div id="hall-of-fame-preview" class="text-gray-600">
-                        <div class="flex items-center justify-center gap-2">
-                            <div class="loading-spinner"></div>
-                            <span>로딩 중...</span>
-                        </div>
-                    </div>
-                    <button id="view-hall-btn" class="mt-4 text-pink-500 hover:text-pink-600 font-medium">
-                        전체 보기 →
-                    </button>
-                </div>
+    <!-- MAIN CONTENT -->
+    <div id="main-content">
+      <!-- HOME SCREEN -->
+      <div id="home-screen" class="text-center">
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 mb-8 
+                    shadow-xl max-w-2xl mx-auto border border-pink-200/50">
+          <div class="text-6xl mb-6">🎀</div>
+          <h2 class="text-3xl font-bold text-gray-800 mb-4">환영합니다!</h2>
+          <p class="text-gray-600 mb-8 text-lg">
+            10문제를 모두 맞히면 모든 사용자가 보는 명예의 전당에 이름을 올릴 수 있어요!
+          </p>
+          <div class="mb-8">
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">퀴즈 유형 선택</h3>
+            <div id="category-tabs" class="flex flex-wrap gap-3 justify-center">
+              <button class="category-tab px-4 py-2 rounded-full" data-category="전체">🌟 전체</button>
+              <button class="category-tab px-4 py-2 rounded-full" data-category="일반상식">🧠 일반상식</button>
+              <button class="category-tab px-4 py-2 rounded-full" data-category="IT">💻 IT</button>
+              <button class="category-tab px-4 py-2 rounded-full" data-category="정치">🏛️ 정치</button>
+              <button class="category-tab px-4 py-2 rounded-full" data-category="금융">💰 금융</button>
+              <button class="category-tab px-4 py-2 rounded-full" data-category="경제">📈 경제</button>
+              <button class="category-tab px-4 py-2 rounded-full" data-category="엔터테인먼트">🎭 엔터</button>
+              <button class="category-tab px-4 py-2 rounded-full" data-category="문화">🎨 문화</button>
             </div>
-
-            <!-- 퀴즈 화면 -->
-            <div id="quiz-screen" class="hidden">
-                <!-- 진행률 -->
-                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-4 mb-6 shadow-lg max-w-2xl mx-auto border border-pink-200/50">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-sm font-medium text-gray-600">진행률</span>
-                        <span id="progress-text" class="text-sm font-bold text-pink-600">1/10</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-3">
-                        <div id="progress-bar" class="progress-bar h-3 rounded-full" style="width: 10%"></div>
-                    </div>
-                </div>
-
-                <!-- 질문 카드 -->
-                <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-                    <div class="text-center mb-8">
-                        <div id="category-badge" class="inline-block bg-pink-100 text-pink-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                            카테고리
-                        </div>
-                        <h2 id="question-text" class="text-2xl md:text-3xl font-bold text-gray-800 leading-relaxed">
-                            질문이 여기에 표시됩니다.
-                        </h2>
-                    </div>
-
-                    <!-- O/X 버튼 -->
-                    <div class="flex gap-6 justify-center">
-                        <button id="o-btn" class="answer-btn group bg-green-50 hover:bg-green-100 border-2 border-green-200 hover:border-green-300 rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                            <div class="w-16 h-16 mx-auto mb-2 text-6xl">⭕</div>
-                            <span class="text-xl font-bold text-green-600">정답</span>
-                        </button>
-                        <button id="x-btn" class="answer-btn group bg-red-50 hover:bg-red-100 border-2 border-red-200 hover:border-red-300 rounded-2xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                            <div class="w-16 h-16 mx-auto mb-2 text-6xl">❌</div>
-                            <span class="text-xl font-bold text-red-600">오답</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 성공 화면 -->
-            <div id="success-screen" class="hidden text-center">
-                <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-                    <div class="success-animation">
-                        <div class="text-8xl mb-6">🎉</div>
-                        <h2 class="text-4xl font-bold text-pink-600 mb-4">🎉 축하합니다!</h2>
-                        <p class="text-xl text-gray-700 mb-8">10문제를 모두 맞히셨네요! 공개 명예의 전당에 이름을 올려주세요.</p>
-
-                        <div class="mb-6">
-                            <input type="text" id="winner-name" placeholder="당신의 이름을 입력하세요"
-                                   class="w-full max-w-md px-4 py-3 rounded-full border-2 border-pink-200 focus:border-pink-400 focus:outline-none text-center text-lg">
-                        </div>
-
-                        <button id="submit-name-btn" class="cute-button text-xl font-bold text-pink-600 px-8 py-3 rounded-full transition-all duration-300 hover:scale-105 mr-4">
-                            🏆 명예의 전당 등록
-                        </button>
-                        <button id="restart-success-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-8 py-3 rounded-full transition-all duration-300">
-                            🔄 다시 도전
-                        </button>
-                    </div>
-                </div>
-</div>
-            </div>
-
-            <!-- 실패 화면 -->
-            <div id="failure-screen" class="hidden text-center">
-                <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-                    <div class="failure-animation">
-                        <div class="text-8xl mb-6">😢</div>
-                        <h2 class="text-4xl font-bold text-gray-600 mb-4">😢 아쉬워요!</h2>
-                        <p class="text-xl text-gray-700 mb-4">정답: <span id="correct-answer" class="font-bold text-pink-600"></span></p>
-                        <p class="text-lg text-gray-600 mb-8">다시 도전해보세요!</p>
-
-                        <button id="retry-btn" class="cute-button text-xl font-bold text-pink-600 px-8 py-3 rounded-full transition-all duration-300 hover:scale-105 mr-4">
-                            🎯 재도전하기
-                        </button>
-                        <button id="home-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-8 py-3 rounded-full transition-all duration-300">
-                            🏠 홈으로
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 명예의 전당 전체보기 -->
-            <div id="hall-screen" class="hidden">
-                <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-xl max-w-2xl mx-auto border border-pink-200/50">
-                    <h2 class="text-3xl font-bold text-pink-600 mb-6 text-center">🏆 공개 명예의 전당</h2>
-                    <div id="hall-of-fame-list" class="space-y-3 mb-8">
-                        <div class="flex items-center justify-center gap-2">
-                            <div class="loading-spinner"></div>
-                            <span>로딩 중...</span>
-                        </div>
-                    </div>
-                    <div class="text-center">
-                        <button id="back-home-btn" class="cute-button text-lg font-bold text-pink-600 px-8 py-3 rounded-full transition-all duration-300 hover:scale-105">
-                            🏠 홈으로 돌아가기
-                        </button>
-                    </div>
-                </div>
-            </div>
+          </div>
+          <button id="start-quiz-btn" class="cute-button text-2xl font-bold text-pink-600 
+                                         px-12 py-4 rounded-full hover:scale-105 transition-all">
+            🎯 바로 시작하기
+          </button>
         </div>
-    </div>
 
-    <script src="hall-of-fame.js"></script>
-    <script src="script.js"></script>
+        <!-- HALL OF FAME PREVIEW -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-xl 
+                    max-w-2xl mx-auto border border-pink-200/50">
+          <h3 class="text-2xl font-bold text-pink-600 mb-4">🏆 공개 명예의 전당</h3>
+          <div id="hall-of-fame-preview" class="text-gray-600">
+            <div class="flex items-center justify-center gap-2">
+              <div class="loading-spinner"></div>
+              <span>로딩 중…</span>
+            </div>
+          </div>
+          <button id="view-hall-btn" class="mt-4 text-pink-500 hover:text-pink-600">
+            전체 보기 →
+          </button>
+        </div>
+      </div>
+      <!-- 나머지 화면들은 script.js에서 제어됩니다 -->
+    </div>
+  </div>
+
+  <!-- 5) JS 모듈 -->
+  <script src="hall-of-fame.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
-
